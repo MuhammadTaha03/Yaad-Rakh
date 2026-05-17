@@ -127,7 +127,7 @@ yaad_rakh/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/yaad_rakh.git
+https://github.com/MuhammadTaha03/Yaad-Rakh.git
 cd yaad_rakh
 ```
 
