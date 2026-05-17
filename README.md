@@ -1,4 +1,3 @@
-# todo-app
 # 📋 Yaad Rakh — یاد رکھ
 ### The Task Manager That Works For Everyone
 
