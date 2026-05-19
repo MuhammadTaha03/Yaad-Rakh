@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 
 part 'custom_category.g.dart';
 
-@HiveType(typeId: 4)
+@HiveType(typeId: 5)
 class CustomCategory extends HiveObject {
   @HiveField(0)
   final String id;
