@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'tasks/models/task.dart';
+import 'tasks/models/custom_category.dart';
 import 'tasks/task_provider.dart';
 import 'notifications/models/notification_settings.dart';
 import 'notifications/notification_provider.dart';
@@ -27,10 +28,12 @@ void main() async {
   Hive.registerAdapter(RepeatOptionAdapter());
   Hive.registerAdapter(TaskCategoryAdapter());
   Hive.registerAdapter(NotificationSettingsAdapter());
+  Hive.registerAdapter(CustomCategoryAdapter());
 
   // Open Hive boxes
   final settingsBox = await Hive.openBox('settings');
   final tasksBox = await Hive.openBox<Task>('tasks');
+  await Hive.openBox<CustomCategory>('custom_categories');
 
   // 2. Initialize timezone & local channels
   final notificationService = NotificationService();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'models/task.dart';
+import 'models/custom_category.dart';
 import 'services/firestore_sync_service.dart';
 import '../notifications/notification_service.dart';
 import '../notifications/notification_exception.dart';
@@ -13,6 +14,41 @@ class TaskProvider extends ChangeNotifier {
   final FirestoreSyncService _sync = FirestoreSyncService();
   final NotificationService _notifications = NotificationService();
   final _uuid = const Uuid();
+
+  TaskProvider() {
+    _seedDefaultCategories();
+  }
+
+  List<CustomCategory> get customCategories =>
+      Hive.box<CustomCategory>('custom_categories').values.toList();
+
+  Future<void> addCustomCategory(CustomCategory category) async {
+    final box = Hive.box<CustomCategory>('custom_categories');
+    await box.put(category.id, category);
+    notifyListeners();
+  }
+
+  Future<void> deleteCustomCategory(String id) async {
+    final box = Hive.box<CustomCategory>('custom_categories');
+    await box.delete(id);
+    notifyListeners();
+  }
+
+  void _seedDefaultCategories() {
+    final box = Hive.box<CustomCategory>('custom_categories');
+    if (box.isEmpty) {
+      final defaults = [
+        CustomCategory(id: 'home', nameEnglish: 'Home', nameUrdu: 'گھر', nameRomanUrdu: 'Ghar', colorHex: 0xFF3B82F6),
+        CustomCategory(id: 'work', nameEnglish: 'Work', nameUrdu: 'کام', nameRomanUrdu: 'Kaam', colorHex: 0xFFEF4444),
+        CustomCategory(id: 'study', nameEnglish: 'Study', nameUrdu: 'پڑھائی', nameRomanUrdu: 'Padhai', colorHex: 0xFF10B981),
+        CustomCategory(id: 'shopping', nameEnglish: 'Shopping', nameUrdu: 'خریداری', nameRomanUrdu: 'Kharidari', colorHex: 0xFFF59E0B),
+        CustomCategory(id: 'other', nameEnglish: 'Other', nameUrdu: 'دیگر', nameRomanUrdu: 'Deegar', colorHex: 0xFF8B5CF6),
+      ];
+      for (final cat in defaults) {
+        box.put(cat.id, cat);
+      }
+    }
+  }
 
   List<Task> get tasks => _box.values.toList()
     ..sort((a, b) => (a.dueDate ?? DateTime(2100))

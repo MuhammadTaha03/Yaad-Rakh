@@ -28,13 +28,14 @@ class TaskAdapter extends TypeAdapter<Task> {
       languageId: fields[8] as String,
       isSyncedToFirestore: fields[9] as bool,
       reminderOffsetMinutes: fields[10] as int,
+      customCategoryId: fields[11] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Task obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(9)
       ..write(obj.isSyncedToFirestore)
       ..writeByte(10)
-      ..write(obj.reminderOffsetMinutes);
+      ..write(obj.reminderOffsetMinutes)
+      ..writeByte(11)
+      ..write(obj.customCategoryId);
   }
 
   @override

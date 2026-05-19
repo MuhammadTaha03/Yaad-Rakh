@@ -67,6 +67,9 @@ class Task extends HiveObject {
   @HiveField(10)
   int reminderOffsetMinutes; // 0 = on time, 15 = 15m before, 60 = 1h before, 1440 = 1d before, -1 = no reminder
 
+  @HiveField(11)
+  String? customCategoryId;
+
   Task({
     required this.id,
     required this.title,
@@ -79,6 +82,7 @@ class Task extends HiveObject {
     required this.languageId,
     this.isSyncedToFirestore = false,
     this.reminderOffsetMinutes = 15,
+    this.customCategoryId,
   });
 
   Map<String, dynamic> toFirestore() => {
@@ -92,6 +96,7 @@ class Task extends HiveObject {
         'createdAt': createdAt.toIso8601String(),
         'languageId': languageId,
         'reminderOffsetMinutes': reminderOffsetMinutes,
+        'customCategoryId': customCategoryId,
       };
 
   factory Task.fromFirestore(Map<String, dynamic> data) => Task(
@@ -113,5 +118,6 @@ class Task extends HiveObject {
         createdAt: DateTime.parse(data['createdAt'] as String),
         languageId: data['languageId'] as String? ?? 'en',
         reminderOffsetMinutes: data['reminderOffsetMinutes'] as int? ?? 15,
+        customCategoryId: data['customCategoryId'] as String?,
       );
 }

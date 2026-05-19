@@ -6,6 +6,9 @@ import '../models/task.dart';
 import '../task_provider.dart';
 import '../screens/edit_task_screen.dart';
 
+import 'package:hive/hive.dart';
+import '../models/custom_category.dart';
+
 class TaskTile extends StatelessWidget {
   final Task task;
 
@@ -20,23 +23,50 @@ class TaskTile extends StatelessWidget {
     final theme = Theme.of(context);
     
     // Resolve dynamic colors for categories
-    Color activeColor;
-    switch (task.category) {
-      case TaskCategory.home:
-        activeColor = const Color(0xFF3B82F6);
-        break;
-      case TaskCategory.work:
-        activeColor = const Color(0xFFEF4444);
-        break;
-      case TaskCategory.study:
-        activeColor = const Color(0xFF10B981);
-        break;
-      case TaskCategory.shopping:
-        activeColor = const Color(0xFFF59E0B);
-        break;
-      case TaskCategory.other:
-        activeColor = const Color(0xFF8B5CF6);
-        break;
+    Color activeColor = const Color(0xFF8B5CF6);
+    String categoryName = "Other";
+
+    final customCats = Hive.box<CustomCategory>('custom_categories').values;
+    final String? customCatId = task.customCategoryId;
+
+    if (customCatId != null && customCatId.isNotEmpty) {
+      final customCat = customCats.firstWhere(
+        (c) => c.id == customCatId,
+        orElse: () => CustomCategory(id: 'fallback', nameEnglish: 'Other', nameUrdu: 'دیگر', nameRomanUrdu: 'Deegar', colorHex: 0xFF8B5CF6),
+      );
+      activeColor = Color(customCat.colorHex);
+      final activeLang = task.languageId;
+      if (activeLang == 'ur') {
+        categoryName = customCat.nameUrdu;
+      } else if (activeLang == 'roman_ur') {
+        categoryName = customCat.nameRomanUrdu;
+      } else {
+        categoryName = customCat.nameEnglish;
+      }
+    } else {
+      // Fallback to static category
+      switch (task.category) {
+        case TaskCategory.home:
+          activeColor = const Color(0xFF3B82F6);
+          categoryName = task.languageId == 'ur' ? 'گھر' : task.languageId == 'roman_ur' ? 'Ghar' : 'Home';
+          break;
+        case TaskCategory.work:
+          activeColor = const Color(0xFFEF4444);
+          categoryName = task.languageId == 'ur' ? 'کام' : task.languageId == 'roman_ur' ? 'Kaam' : 'Work';
+          break;
+        case TaskCategory.study:
+          activeColor = const Color(0xFF10B981);
+          categoryName = task.languageId == 'ur' ? 'پڑھائی' : task.languageId == 'roman_ur' ? 'Padhai' : 'Study';
+          break;
+        case TaskCategory.shopping:
+          activeColor = const Color(0xFFF59E0B);
+          categoryName = task.languageId == 'ur' ? 'خریداری' : task.languageId == 'roman_ur' ? 'Kharidari' : 'Shopping';
+          break;
+        case TaskCategory.other:
+          activeColor = const Color(0xFF8B5CF6);
+          categoryName = task.languageId == 'ur' ? 'دیگر' : task.languageId == 'roman_ur' ? 'Deegar' : 'Other';
+          break;
+      }
     }
 
     return Dismissible(
@@ -83,14 +113,22 @@ class TaskTile extends StatelessWidget {
         ),
         subtitle: Row(
           children: [
-            // Colored Category Indicator
+            // Colored Category Capsule Tag Tag
             Container(
               margin: const EdgeInsets.only(top: 6, right: 8),
-              width: 8,
-              height: 8,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: activeColor,
-                shape: BoxShape.circle,
+                color: activeColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: activeColor.withValues(alpha: 0.3), width: 1),
+              ),
+              child: Text(
+                categoryName,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: activeColor,
+                ),
               ),
             ),
             if (task.dueDate != null) ...[

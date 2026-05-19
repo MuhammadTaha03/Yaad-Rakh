@@ -11,8 +11,16 @@ import 'calendar_screen_tab.dart';
 import '../widgets/voice_input_sheet.dart';
 import '../../notifications/screens/settings_screen.dart';
 
-class TaskListScreen extends StatelessWidget {
+class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
+
+  @override
+  State<TaskListScreen> createState() => _TaskListScreenState();
+}
+
+class _TaskListScreenState extends State<TaskListScreen> {
+  // Category filter state ('all' means show all categories)
+  String _selectedFilterCategoryId = 'all';
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +72,25 @@ class TaskListScreen extends StatelessWidget {
       todayHeader = "Aaj Ke Kaam";
       upcomingHeader = "Aane Wale Kaam";
     }
+
+    // 4. Filter task lists dynamically
+    final String selFilter = _selectedFilterCategoryId;
+    
+    final filteredOverdue = selFilter == 'all'
+        ? provider.overdueTasks
+        : provider.overdueTasks.where((t) => (t.customCategoryId ?? t.category.name) == selFilter).toList();
+        
+    final filteredToday = selFilter == 'all'
+        ? provider.todayTasks
+        : provider.todayTasks.where((t) => (t.customCategoryId ?? t.category.name) == selFilter).toList();
+        
+    final filteredUpcoming = selFilter == 'all'
+        ? provider.upcomingTasks
+        : provider.upcomingTasks.where((t) => (t.customCategoryId ?? t.category.name) == selFilter).toList();
+        
+    final filteredCompleted = selFilter == 'all'
+        ? provider.completedTasks
+        : provider.completedTasks.where((t) => (t.customCategoryId ?? t.category.name) == selFilter).toList();
 
     return DefaultTabController(
       length: 3,
@@ -129,20 +156,20 @@ class TaskListScreen extends StatelessWidget {
                     // A. Premium Glassmorphic Gradient Header Card
                     Container(
                       width: double.infinity,
-                      margin: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
                             theme.colorScheme.primaryContainer,
-                            theme.colorScheme.secondaryContainer.withOpacity(0.4),
+                            theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: theme.colorScheme.primary.withOpacity(0.12),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
                         ),
                       ),
                       child: Column(
@@ -159,7 +186,7 @@ class TaskListScreen extends StatelessWidget {
                           Text(
                             progressSubtitle,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer.withOpacity(0.8),
+                              color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -170,7 +197,7 @@ class TaskListScreen extends StatelessWidget {
                               value: (completedCount + remainingCount) == 0
                                   ? 0
                                   : completedCount / (completedCount + remainingCount),
-                              backgroundColor: theme.colorScheme.onPrimaryContainer.withOpacity(0.12),
+                              backgroundColor: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.12),
                               color: theme.colorScheme.primary,
                               minHeight: 8,
                             ),
@@ -179,21 +206,108 @@ class TaskListScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // If zero tasks exist, render a clean placeholder
+                    // B. Horizontal Scrolling Category Filter Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: SizedBox(
+                        height: 48,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: provider.customCategories.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == 0) {
+                              // "All" filter chip
+                              final isSelected = _selectedFilterCategoryId == 'all';
+                              return Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  label: Text(
+                                    isUrdu ? "سب" : isRoman ? "Sab" : "All",
+                                    style: TextStyle(
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      color: isSelected ? Colors.white : theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  selected: isSelected,
+                                  selectedColor: theme.colorScheme.primary,
+                                  checkmarkColor: Colors.white,
+                                  backgroundColor: theme.colorScheme.surface,
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? theme.colorScheme.primary
+                                        : theme.colorScheme.onSurface.withValues(alpha: 0.12),
+                                  ),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  onSelected: (val) {
+                                    if (val) {
+                                      setState(() {
+                                        _selectedFilterCategoryId = 'all';
+                                      });
+                                    }
+                                  },
+                                ),
+                              );
+                            }
+                            
+                            final cat = provider.customCategories[index - 1];
+                            final isSelected = _selectedFilterCategoryId == cat.id;
+                            final color = Color(cat.colorHex);
+
+                            String displayName = cat.nameEnglish;
+                            if (isUrdu) {
+                              displayName = cat.nameUrdu;
+                            } else if (isRoman) {
+                              displayName = cat.nameRomanUrdu;
+                            }
+
+                            return Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text(
+                                  displayName,
+                                  style: TextStyle(
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    color: isSelected ? Colors.white : theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                                selected: isSelected,
+                                selectedColor: color,
+                                checkmarkColor: Colors.white,
+                                backgroundColor: theme.colorScheme.surface,
+                                side: BorderSide(
+                                  color: isSelected ? color : theme.colorScheme.onSurface.withValues(alpha: 0.12),
+                                ),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                onSelected: (val) {
+                                  if (val) {
+                                    setState(() {
+                                      _selectedFilterCategoryId = cat.id;
+                                    });
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    // If zero tasks exist in current filtered state, render clean placeholder
                     if (provider.pendingTasks.isEmpty) ...[
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 32),
                       const EmptyTaskView(),
                     ] else ...[
                       // Section 1: Overdue Tasks (High Impact Red)
-                      if (provider.overdueTasks.isNotEmpty) ...[
+                      if (filteredOverdue.isNotEmpty) ...[
                         _buildSectionHeader(context, overdueHeader, true),
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: provider.overdueTasks.length,
+                          itemCount: filteredOverdue.length,
                           separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
                           itemBuilder: (context, index) {
-                            final task = provider.overdueTasks[index];
+                            final task = filteredOverdue[index];
                             return Theme(
                               data: theme.copyWith(
                                 colorScheme: theme.colorScheme.copyWith(
@@ -208,33 +322,44 @@ class TaskListScreen extends StatelessWidget {
                       ],
 
                       // Section 2: Today's Tasks
-                      if (provider.todayTasks.isNotEmpty) ...[
+                      if (filteredToday.isNotEmpty) ...[
                         _buildSectionHeader(context, todayHeader, false),
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: provider.todayTasks.length,
+                          itemCount: filteredToday.length,
                           separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
                           itemBuilder: (context, index) {
-                            return TaskTile(task: provider.todayTasks[index]);
+                            return TaskTile(task: filteredToday[index]);
                           },
                         ),
                         const SizedBox(height: 16),
                       ],
 
                       // Section 3: Upcoming / Someday Tasks
-                      if (provider.upcomingTasks.isNotEmpty) ...[
+                      if (filteredUpcoming.isNotEmpty) ...[
                         _buildSectionHeader(context, upcomingHeader, false),
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: provider.upcomingTasks.length,
+                          itemCount: filteredUpcoming.length,
                           separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
                           itemBuilder: (context, index) {
-                            return TaskTile(task: provider.upcomingTasks[index]);
+                            return TaskTile(task: filteredUpcoming[index]);
                           },
                         ),
                         const SizedBox(height: 24),
+                      ],
+                      
+                      // Filter fallback if all segments are empty but total items exist
+                      if (filteredOverdue.isEmpty && filteredToday.isEmpty && filteredUpcoming.isEmpty) ...[
+                        const SizedBox(height: 48),
+                        Center(
+                          child: Text(
+                            isUrdu ? "اس کیٹیگری میں کوئی کام نہیں ہے۔" : "No tasks in this category.",
+                            style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                          ),
+                        ),
                       ],
                     ],
                   ],
@@ -246,16 +371,16 @@ class TaskListScreen extends StatelessWidget {
             const CalendarScreenTab(),
                   
             // --- TAB 3: Completed History ---
-            provider.completedTasks.isEmpty
+            filteredCompleted.isEmpty
                 ? const EmptyTaskView()
                 : RefreshIndicator(
                     onRefresh: () => provider.syncFromFirestore("local_uid"),
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      itemCount: provider.completedTasks.length,
+                      itemCount: filteredCompleted.length,
                       separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
                       itemBuilder: (context, index) {
-                        return TaskTile(task: provider.completedTasks[index]);
+                        return TaskTile(task: filteredCompleted[index]);
                       },
                     ),
                   ),
