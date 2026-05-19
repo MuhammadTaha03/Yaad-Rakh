@@ -210,7 +210,7 @@ class NotificationService {
       final reminderId = hashTaskId(task.id);
 
       // 2. Build details
-      final androidDetails = AndroidNotificationDetails(
+      const androidDetails = AndroidNotificationDetails(
         _reminderChannelId,
         _reminderChannelName,
         channelDescription: 'Fires alerts for scheduled tasks',
@@ -220,13 +220,13 @@ class NotificationService {
         enableVibration: true,
       );
 
-      final iosDetails = const DarwinNotificationDetails(
+      const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
       );
 
-      final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+      const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
       // 3. Register native scheduled alarm
       await _localPlugin.zonedSchedule(
@@ -293,14 +293,14 @@ class NotificationService {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
 
-    final androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       _summaryChannelId,
       _summaryChannelName,
       channelDescription: 'Fires every morning summarizing today\'s task load',
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
     );
-    final details = NotificationDetails(android: androidDetails, iOS: const DarwinNotificationDetails());
+    const details = NotificationDetails(android: androidDetails, iOS: DarwinNotificationDetails());
 
     try {
       // Morning summaries will use reserved static IDs 2000000 to 2000006
