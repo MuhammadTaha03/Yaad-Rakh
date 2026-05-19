@@ -11,6 +11,9 @@ import 'calendar_screen_tab.dart';
 import '../widgets/voice_input_sheet.dart';
 import '../../notifications/screens/settings_screen.dart';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
+
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
 
@@ -21,6 +24,39 @@ class TaskListScreen extends StatefulWidget {
 class _TaskListScreenState extends State<TaskListScreen> {
   // Category filter state ('all' means show all categories)
   String _selectedFilterCategoryId = 'all';
+  
+  bool _isOffline = false;
+  StreamSubscription? _connectivitySubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkInitialConnectivity();
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((dynamic event) {
+      if (event is List<ConnectivityResult>) {
+        setState(() {
+          _isOffline = event.contains(ConnectivityResult.none);
+        });
+      } else if (event is ConnectivityResult) {
+        setState(() {
+          _isOffline = event == ConnectivityResult.none;
+        });
+      }
+    });
+  }
+
+  Future<void> _checkInitialConnectivity() async {
+    final results = await Connectivity().checkConnectivity();
+    setState(() {
+      _isOffline = results.contains(ConnectivityResult.none);
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +241,43 @@ class _TaskListScreenState extends State<TaskListScreen> {
                         ],
                       ),
                     ),
+
+                    if (_isOffline)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.cloud_off_rounded,
+                              size: 18,
+                              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                isUrdu
+                                    ? "آف لائن موڈ — کام مقامی طور پر محفوظ ہو رہے ہیں"
+                                    : isRoman
+                                        ? "Offline Mode — Kaam locally save ho rahe hain"
+                                        : "Offline Mode — Working locally",
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
                     // B. Horizontal Scrolling Category Filter Bar
                     Padding(
