@@ -7,6 +7,7 @@ import '../widgets/task_tile.dart';
 import '../widgets/empty_task_view.dart';
 import 'add_task_screen.dart';
 import '../../onboarding/onboarding_provider.dart';
+import '../widgets/voice_input_sheet.dart';
 import '../../notifications/screens/settings_screen.dart';
 
 class TaskListScreen extends StatelessWidget {
@@ -105,24 +106,51 @@ class TaskListScreen extends StatelessWidget {
                   ),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const AddTaskScreen(),
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              heroTag: "voice_input_fab",
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
+                    ),
+                  ),
+                  builder: (_) => const VoiceInputSheet(),
+                );
+              },
+              backgroundColor: theme.colorScheme.secondary,
+              foregroundColor: theme.colorScheme.onSecondary,
+              tooltip: "Voice Input",
+              child: const Icon(Icons.mic),
+            ),
+            const SizedBox(width: 16),
+            FloatingActionButton.extended(
+              heroTag: "primary_add_fab",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddTaskScreen(),
+                  ),
+                );
+              },
+              label: Text(
+                isUrdu
+                    ? "نیا کام"
+                    : onboarding.languageId == 'roman_ur'
+                        ? "Naya Kaam"
+                        : "Add Task",
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-            );
-          },
-          label: Text(
-            isUrdu
-                ? "نیا کام"
-                : onboarding.languageId == 'roman_ur'
-                    ? "Naya Kaam"
-                    : "Add Task",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add),
+            ),
+          ],
         ),
       ),
     );
