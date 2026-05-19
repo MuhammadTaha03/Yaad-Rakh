@@ -24,6 +24,54 @@ class TaskProvider extends ChangeNotifier {
   List<Task> get completedTasks =>
       tasks.where((t) => t.isCompleted).toList();
 
+  List<Task> get overdueTasks {
+    final now = DateTime.now();
+    return pendingTasks.where((task) {
+      if (task.dueDate == null) return false;
+      
+      int hour = 0;
+      int minute = 0;
+      if (task.dueTime != null) {
+        final parts = task.dueTime!.split(':');
+        hour = int.parse(parts[0]);
+        minute = int.parse(parts[1]);
+      }
+      
+      final dueDateTime = DateTime(
+        task.dueDate!.year,
+        task.dueDate!.month,
+        task.dueDate!.day,
+        hour,
+        minute,
+      );
+      
+      return dueDateTime.isBefore(now);
+    }).toList();
+  }
+
+  List<Task> get todayTasks {
+    final now = DateTime.now();
+    final overdue = overdueTasks;
+    return pendingTasks.where((task) {
+      if (task.dueDate == null) return false;
+      
+      final isSameDay = task.dueDate!.year == now.year &&
+                        task.dueDate!.month == now.month &&
+                        task.dueDate!.day == now.day;
+      
+      return isSameDay && !overdue.any((o) => o.id == task.id);
+    }).toList();
+  }
+
+  List<Task> get upcomingTasks {
+    final overdue = overdueTasks;
+    final today = todayTasks;
+    return pendingTasks.where((task) {
+      return !overdue.any((o) => o.id == task.id) && 
+             !today.any((t) => t.id == task.id);
+    }).toList();
+  }
+
   // Helper to fetch current language ID from settings dynamically
   String get _currentLanguageId =>
       Hive.box('settings').get('languageId', defaultValue: 'en') as String;
