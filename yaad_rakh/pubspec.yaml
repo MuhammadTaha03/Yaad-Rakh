@@ -33,6 +33,7 @@ dependencies:
   # UI & Fonts
   google_fonts: ^6.1.0
   speech_to_text: ^6.6.2
+  table_calendar: ^3.1.2
 
   # Network & System
   connectivity_plus: ^6.0.3

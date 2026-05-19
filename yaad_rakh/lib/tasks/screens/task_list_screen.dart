@@ -7,6 +7,7 @@ import '../widgets/task_tile.dart';
 import '../widgets/empty_task_view.dart';
 import 'add_task_screen.dart';
 import '../../onboarding/onboarding_provider.dart';
+import 'calendar_screen_tab.dart';
 import '../widgets/voice_input_sheet.dart';
 import '../../notifications/screens/settings_screen.dart';
 
@@ -65,7 +66,7 @@ class TaskListScreen extends StatelessWidget {
     }
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -95,6 +96,13 @@ class TaskListScreen extends StatelessWidget {
                     : isRoman
                         ? "Dashboard"
                         : "Dashboard",
+              ),
+              Tab(
+                text: isUrdu
+                    ? "کیلنڈر"
+                    : isRoman
+                        ? "Calendar"
+                        : "Calendar",
               ),
               Tab(
                 text: isUrdu
@@ -234,7 +242,10 @@ class TaskListScreen extends StatelessWidget {
               ),
             ),
                   
-            // --- TAB 2: Completed History ---
+            // --- TAB 2: Calendar View ---
+            const CalendarScreenTab(),
+                  
+            // --- TAB 3: Completed History ---
             provider.completedTasks.isEmpty
                 ? const EmptyTaskView()
                 : RefreshIndicator(
