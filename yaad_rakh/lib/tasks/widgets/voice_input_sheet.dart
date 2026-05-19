@@ -33,6 +33,7 @@ class _VoiceInputSheetState extends State<VoiceInputSheet> with SingleTickerProv
   DateTime? _parsedDate;
   String? _parsedTime;
   String _parsedCleanTitle = "";
+  String? _parsedCategoryId;
 
   @override
   void initState() {
@@ -104,6 +105,7 @@ class _VoiceInputSheetState extends State<VoiceInputSheet> with SingleTickerProv
       _parsedDate = null;
       _parsedTime = null;
       _parsedCleanTitle = "";
+      _parsedCategoryId = null;
     });
 
     await _speech.listen(
@@ -131,6 +133,7 @@ class _VoiceInputSheetState extends State<VoiceInputSheet> with SingleTickerProv
       _parsedCleanTitle = parsed.cleanTitle;
       _parsedDate = parsed.detectedDate;
       _parsedTime = parsed.detectedTime;
+      _parsedCategoryId = parsed.detectedCategoryId;
     });
   }
 
@@ -146,13 +149,25 @@ class _VoiceInputSheetState extends State<VoiceInputSheet> with SingleTickerProv
     final activeLang = onboarding.languageId;
     final defaultOffset = settingsBox.get('defaultOffsetMinutes', defaultValue: 15) as int;
 
+    TaskCategory staticCat = TaskCategory.other;
+    if (_parsedCategoryId == 'home') {
+      staticCat = TaskCategory.home;
+    } else if (_parsedCategoryId == 'work') {
+      staticCat = TaskCategory.work;
+    } else if (_parsedCategoryId == 'study') {
+      staticCat = TaskCategory.study;
+    } else if (_parsedCategoryId == 'shopping') {
+      staticCat = TaskCategory.shopping;
+    }
+
     final task = Task(
       id: const Uuid().v4(),
       title: finalTitle,
       dueDate: _parsedDate,
       dueTime: _parsedTime,
       repeatOption: RepeatOption.none,
-      category: TaskCategory.other,
+      category: staticCat,
+      customCategoryId: _parsedCategoryId ?? 'other',
       createdAt: DateTime.now(),
       languageId: activeLang,
       reminderOffsetMinutes: defaultOffset,
@@ -340,7 +355,7 @@ class _VoiceInputSheetState extends State<VoiceInputSheet> with SingleTickerProv
             ),
             
             // Dynamic parser extraction outputs
-            if (_parsedDate != null || _parsedTime != null) ...[
+            if (_parsedDate != null || _parsedTime != null || _parsedCategoryId != null) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -392,6 +407,19 @@ class _VoiceInputSheetState extends State<VoiceInputSheet> with SingleTickerProv
                           Text(
                             _parsedTime!,
                             style: const TextStyle(fontSize: 13),
+                          ),
+                        ],
+                        if (_parsedCategoryId != null) ...[
+                          const SizedBox(width: 16),
+                          Icon(Icons.label_outline, size: 14, color: theme.colorScheme.primary),
+                          const SizedBox(width: 4),
+                          Text(
+                            _parsedCategoryId!.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
                           ),
                         ],
                       ],

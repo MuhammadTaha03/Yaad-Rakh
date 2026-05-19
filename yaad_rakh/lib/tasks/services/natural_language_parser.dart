@@ -4,11 +4,13 @@ class ParsedTaskInput {
   final String cleanTitle;
   final DateTime? detectedDate;
   final String? detectedTime; // "HH:mm"
+  final String? detectedCategoryId;
 
   const ParsedTaskInput({
     required this.cleanTitle,
     this.detectedDate,
     this.detectedTime,
+    this.detectedCategoryId,
   });
 }
 
@@ -88,11 +90,37 @@ class NaturalLanguageParser {
     clean = clean.replaceAll(timeRegex, '').trim();
     clean = clean.replaceAll(RegExp(r'\s+'), ' ').trim();
 
+    final categoryId = detectCategory(text);
+
     return ParsedTaskInput(
       cleanTitle: clean.isEmpty ? input : clean,
       detectedDate: date,
       detectedTime: time,
+      detectedCategoryId: categoryId,
     );
+  }
+
+  static String? detectCategory(String input) {
+    final text = input.toLowerCase();
+
+    // Home keywords
+    if (_contains(text, ['ghar', 'گھر', 'safai', 'صفائی', 'home', 'kitchen', 'washing', 'dhona'])) {
+      return 'home';
+    }
+    // Work keywords
+    if (_contains(text, ['work', 'office', 'meeting', 'نوکری', 'کام', 'job', 'boss', 'interview', 'mulakat'])) {
+      return 'work';
+    }
+    // Study keywords
+    if (_contains(text, ['study', 'exam', 'imtihan', 'پڑھائی', 'test', 'homework', 'parhna', 'parhai', 'class', 'school', 'college', 'uni'])) {
+      return 'study';
+    }
+    // Shopping keywords
+    if (_contains(text, ['shopping', 'bazar', 'bazaar', 'سودا', 'خریداری', 'dukan', 'dokan', 'market', 'mall', 'kharid'])) {
+      return 'shopping';
+    }
+
+    return null;
   }
 
   static bool _contains(String text, List<String> keywords) =>
