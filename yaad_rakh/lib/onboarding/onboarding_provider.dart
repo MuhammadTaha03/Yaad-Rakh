@@ -17,6 +17,24 @@ class OnboardingProvider extends ChangeNotifier {
 
   bool get onboarded => _settingsBox.get('onboarded', defaultValue: false) as bool;
 
+  String get themeMode => _settingsBox.get('themeMode', defaultValue: 'system') as String;
+
+  ThemeMode get activeThemeMode {
+    switch (themeMode) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  Future<void> setThemeMode(String mode) async {
+    await _settingsBox.put('themeMode', mode);
+    notifyListeners();
+  }
+
   Future<void> setCustomLanguage(String id) async {
     await _settingsBox.put('languageId', id);
     notifyListeners();

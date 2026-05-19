@@ -18,8 +18,9 @@ class SettingsScreen extends StatelessWidget {
     final theme = Theme.of(context);
     
     final isUrdu = onboarding.languageId == 'ur';
+    final isRoman = onboarding.languageId == 'roman_ur';
 
-    // Localized headers
+    // Localized Headers & String variables
     String titleText = "Settings";
     String remindersHeader = "TASK REMINDERS";
     String enableLabel = "Enable Reminders";
@@ -28,6 +29,24 @@ class SettingsScreen extends StatelessWidget {
     String enableSummaryLabel = "Enable Morning Summaries";
     String summaryTimeLabel = "Daily Summary Time";
     String langHeader = "APP LANGUAGE";
+    
+    // Module 8 Settings additions
+    String profileHeader = "USER PROFILE";
+    String profileNameLabel = "Profile Name";
+    String themeHeader = "APP THEME";
+    String systemThemeLabel = "System Default";
+    String lightThemeLabel = "Light Mode";
+    String darkThemeLabel = "Dark Mode";
+    
+    String actionsHeader = "ACTIONS";
+    String clearCompletedLabel = "Clear Completed Tasks";
+    String clearCompletedConfirm = "Are you sure you want to clear all completed tasks?";
+    String clearCompletedBtn = "CLEAR";
+    String cancelBtn = "CANCEL";
+    
+    String aboutHeader = "ABOUT & PRIVACY";
+    String versionLabel = "Version 1.0.0";
+    String privacyPolicyLabel = "Privacy Policy & Terms";
     String resetBtnLabel = "Reset Onboarding";
 
     if (isUrdu) {
@@ -39,8 +58,25 @@ class SettingsScreen extends StatelessWidget {
       enableSummaryLabel = "روزانہ صبح کا خلاصہ";
       summaryTimeLabel = "خلاصہ کا وقت";
       langHeader = "ایپ کی زبان";
+      
+      profileHeader = "پروفائل";
+      profileNameLabel = "پروفائل نام";
+      themeHeader = "تھیم";
+      systemThemeLabel = "سسٹم ڈیفالٹ";
+      lightThemeLabel = "لائٹ موڈ";
+      darkThemeLabel = "ڈارک موڈ";
+      
+      actionsHeader = "اقدامات";
+      clearCompletedLabel = "مکمل کام صاف کریں";
+      clearCompletedConfirm = "کیا آپ تمام مکمل شدہ کام صاف کرنا چاہتے ہیں؟";
+      clearCompletedBtn = "صاف کریں";
+      cancelBtn = "منسوخ کریں";
+      
+      aboutHeader = "ایپ کے بارے میں";
+      versionLabel = "ورژن 1.0.0";
+      privacyPolicyLabel = "پرائیویسی پالیسی اور شرائط";
       resetBtnLabel = "دوبارہ شروع کریں";
-    } else if (onboarding.languageId == 'roman_ur') {
+    } else if (isRoman) {
       titleText = "Settings";
       remindersHeader = "TASK REMINDERS";
       enableLabel = "Reminders active karein";
@@ -49,6 +85,23 @@ class SettingsScreen extends StatelessWidget {
       enableSummaryLabel = "Daily morning summaries";
       summaryTimeLabel = "Summary ka time";
       langHeader = "APP LANGUAGE";
+      
+      profileHeader = "USER PROFILE";
+      profileNameLabel = "Profile Name";
+      themeHeader = "APP THEME";
+      systemThemeLabel = "System Default";
+      lightThemeLabel = "Light Mode";
+      darkThemeLabel = "Dark Mode";
+      
+      actionsHeader = "ACTIONS";
+      clearCompletedLabel = "Completed Kaam Saaf Karein";
+      clearCompletedConfirm = "Kya aap saare completed kaam saaf karna chahte hain?";
+      clearCompletedBtn = "SAAF KAREIN";
+      cancelBtn = "CANCEL";
+      
+      aboutHeader = "ABOUT & PRIVACY";
+      versionLabel = "Version 1.0.0";
+      privacyPolicyLabel = "Privacy Policy & Terms";
       resetBtnLabel = "Onboarding reset karein";
     }
 
@@ -58,11 +111,97 @@ class SettingsScreen extends StatelessWidget {
         backgroundColor: theme.colorScheme.primaryContainer,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
-          // --- Category 1: Reminders ---
+          // --- Section 1: User Profile ---
+          _buildHeader(theme, profileHeader),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: CircleAvatar(
+              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+              foregroundColor: theme.colorScheme.primary,
+              child: const Icon(Icons.person),
+            ),
+            title: Text(profileNameLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+            subtitle: Text(
+              onboarding.userName.isNotEmpty ? onboarding.userName : "User",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            trailing: const Icon(Icons.mode_edit_outline_outlined, size: 20),
+            onTap: () {
+              final controller = TextEditingController(text: onboarding.userName);
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text(isUrdu ? "نام تبدیل کریں" : "Edit Profile Name"),
+                  content: TextField(
+                    controller: controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: isUrdu ? "اپنا نام لکھیں" : "Enter your name",
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(cancelBtn),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final val = controller.text.trim();
+                        if (val.isNotEmpty) {
+                          await onboarding.setName(val);
+                        }
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: Text(isUrdu ? "محفوظ کریں" : "SAVE"),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+
+          // --- Section 2: App Theme ---
+          _buildHeader(theme, themeHeader),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: CircleAvatar(
+              backgroundColor: theme.colorScheme.secondary.withValues(alpha: 0.1),
+              foregroundColor: theme.colorScheme.secondary,
+              child: const Icon(Icons.palette),
+            ),
+            title: Text(
+              onboarding.themeMode == 'system'
+                  ? systemThemeLabel
+                  : onboarding.themeMode == 'light'
+                      ? lightThemeLabel
+                      : darkThemeLabel,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            trailing: DropdownButton<String>(
+              value: onboarding.themeMode,
+              underline: const SizedBox(),
+              borderRadius: BorderRadius.circular(12),
+              items: [
+                DropdownMenuItem(value: 'system', child: Text(systemThemeLabel)),
+                DropdownMenuItem(value: 'light', child: Text(lightThemeLabel)),
+                DropdownMenuItem(value: 'dark', child: Text(darkThemeLabel)),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  onboarding.setThemeMode(val);
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+
+          // --- Section 3: Task Reminders ---
           _buildHeader(theme, remindersHeader),
-          
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             title: Text(enableLabel, style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -95,12 +234,11 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           const Divider(),
           
-          // --- Category 2: Morning Summary ---
+          // --- Section 4: Morning Summary ---
           _buildHeader(theme, summaryHeader),
-          
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             title: Text(enableSummaryLabel, style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -140,13 +278,12 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           const Divider(),
           
-          // --- Category 3: Language ---
+          // --- Section 5: Language Selection ---
           _buildHeader(theme, langHeader),
           const SizedBox(height: 12),
-          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -155,10 +292,102 @@ class SettingsScreen extends StatelessWidget {
               _buildLangBtn(context, "اردو", "ur", onboarding, notification, tasks),
             ],
           ),
-          
-          const SizedBox(height: 48),
-          const Divider(),
           const SizedBox(height: 24),
+          const Divider(),
+
+          // --- Section 6: Actions ---
+          _buildHeader(theme, actionsHeader),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+            title: Text(clearCompletedLabel, style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.w500)),
+            trailing: const Icon(Icons.chevron_right, size: 20),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text(clearCompletedLabel),
+                  content: Text(clearCompletedConfirm),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(cancelBtn),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.error,
+                        foregroundColor: theme.colorScheme.onError,
+                      ),
+                      onPressed: () async {
+                        final completed = tasks.completedTasks;
+                        for (final t in completed) {
+                          await tasks.deleteTask(t.id);
+                        }
+                        if (ctx.mounted) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(isUrdu ? "مکمل کام صاف ہو گئے!" : "Completed tasks cleared!")),
+                          );
+                        }
+                      },
+                      child: Text(clearCompletedBtn),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+
+          // --- Section 7: About & Privacy ---
+          _buildHeader(theme, aboutHeader),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text("Yaad Rakh App", style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(versionLabel),
+            trailing: const Icon(Icons.info_outline, size: 20),
+            onTap: () {
+              showAboutDialog(
+                context: context,
+                applicationName: "Yaad Rakh",
+                applicationVersion: "1.0.0",
+                applicationLegalese: "© 2026 Yaad Rakh Devs. Designed for offline-first simplicity in Pakistan.",
+                children: [
+                  const SizedBox(height: 12),
+                  const Text("An elegant digital scheduler tailored for localization support in Urdu script, English, and Roman Urdu. Includes automated task clustering and smart voice NLP transcription."),
+                ],
+              );
+            },
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(privacyPolicyLabel),
+            trailing: const Icon(Icons.lock_outline, size: 20),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text(privacyPolicyLabel),
+                  content: const SingleChildScrollView(
+                    child: Text(
+                      "Privacy Policy:\n\n"
+                      "1. Offline First: Yaad Rakh stores all tasks, categories, and settings locally on your device using Hive. No data leaves your device unless sync features are explicitly enabled.\n\n"
+                      "2. Voice Recognition: Voice inputs are transcribed locally or through the platform standard transcription channels. Transcription streams are never monitored or distributed.\n\n"
+                      "3. Security: All stored reminder alerts respect native sandboxing parameters.",
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text("CLOSE"),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 32),
           
           // --- Action: Reset Onboarding ---
           ElevatedButton.icon(
@@ -180,6 +409,7 @@ class SettingsScreen extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -234,7 +464,7 @@ class SettingsScreen extends StatelessWidget {
             backgroundColor: isSelected ? theme.colorScheme.primary : Colors.transparent,
             foregroundColor: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
             side: BorderSide(
-              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.12),
+              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.12),
             ),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.symmetric(vertical: 14),

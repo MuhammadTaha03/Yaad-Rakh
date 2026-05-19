@@ -87,37 +87,38 @@ class YaadRakhApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Yaad Rakh',
-      debugShowCheckedModeBanner: false,
-      
-      // Wire up easy_localization delegate hooks
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
+    return Consumer<OnboardingProvider>(
+      builder: (context, onboarding, child) {
+        return MaterialApp(
+          title: 'Yaad Rakh',
+          debugShowCheckedModeBanner: false,
+          
+          // Wire up easy_localization delegate hooks
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
 
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF14B8A6), // Premium vibrant teal
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF14B8A6),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      home: Consumer<OnboardingProvider>(
-        builder: (context, onboarding, child) {
-          if (!onboarding.onboarded) {
-            return const LanguageSelectionScreen();
-          }
-          return const TaskListScreen();
-        },
-      ),
+          themeMode: onboarding.activeThemeMode,
+
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF14B8A6), // Premium vibrant teal
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF14B8A6),
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          home: !onboarding.onboarded
+              ? const LanguageSelectionScreen()
+              : const TaskListScreen(),
+        );
+      },
     );
   }
 }
