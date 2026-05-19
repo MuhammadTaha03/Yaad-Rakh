@@ -11,6 +11,7 @@ import 'notifications/notification_provider.dart';
 import 'notifications/notification_service.dart';
 import 'onboarding/onboarding_provider.dart';
 import 'onboarding/screens/language_selection.dart';
+import 'tasks/screens/task_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -111,74 +112,8 @@ class YaadRakhApp extends StatelessWidget {
           if (!onboarding.onboarded) {
             return const LanguageSelectionScreen();
           }
-          return const TempDashboard();
+          return const TaskListScreen();
         },
-      ),
-    );
-  }
-}
-
-class TempDashboard extends StatelessWidget {
-  const TempDashboard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final provider = Provider.of<OnboardingProvider>(context);
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Yaad Rakh — یاد رکھ'),
-        backgroundColor: theme.colorScheme.primaryContainer,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: "Reset Onboarding",
-            onPressed: () async {
-              await provider.resetOnboarding();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Onboarding state reset successfully!")),
-                );
-              }
-            },
-          )
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 80,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Welcome, ${provider.userName}!',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Onboarding Flow Completed & Reminders Active',
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                'Selected Language Profile: ${provider.languageId.toUpperCase()}',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
