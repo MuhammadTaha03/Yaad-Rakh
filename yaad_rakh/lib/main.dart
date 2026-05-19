@@ -3,14 +3,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'tasks/models/task.dart';
 import 'tasks/task_provider.dart';
 import 'notifications/models/notification_settings.dart';
 import 'notifications/notification_provider.dart';
 import 'notifications/notification_service.dart';
+import 'onboarding/onboarding_provider.dart';
+import 'onboarding/screens/language_selection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize dynamic localized engine
+  await EasyLocalization.ensureInitialized();
 
   // 1. Initialize DBs
   await Hive.initFlutter();
@@ -30,7 +36,6 @@ void main() async {
   await notificationService.init();
 
   // 3. Complete Boot/Start Rescheduling Routine
-  // Runs silently on startup to ensure alarm systems perfectly reflect the Hive state
   try {
     final String activeLang = settingsBox.get('languageId', defaultValue: 'en') as String;
     final List<Task> pendingTasks = tasksBox.values.where((t) => !t.isCompleted).toList();
@@ -56,12 +61,19 @@ void main() async {
 
   // 5. Run App
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => TaskProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider()),
-      ],
-      child: const YaadRakhApp(),
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('ur')],
+      path: 'assets/lang',
+      fallbackLocale: const Locale('en'),
+      useOnlyLangCode: true,
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => TaskProvider()),
+          ChangeNotifierProvider(create: (_) => NotificationProvider()),
+          ChangeNotifierProvider(create: (_) => OnboardingProvider()),
+        ],
+        child: const YaadRakhApp(),
+      ),
     ),
   );
 }
@@ -71,10 +83,15 @@ class YaadRakhApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We will render a placeholder or home dashboard screen
     return MaterialApp(
       title: 'Yaad Rakh',
       debugShowCheckedModeBanner: false,
+      
+      // Wire up easy_localization delegate hooks
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
+
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF14B8A6), // Premium vibrant teal
@@ -89,7 +106,14 @@ class YaadRakhApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const TempDashboard(),
+      home: Consumer<OnboardingProvider>(
+        builder: (context, onboarding, child) {
+          if (!onboarding.onboarded) {
+            return const LanguageSelectionScreen();
+          }
+          return const TempDashboard();
+        },
+      ),
     );
   }
 }
@@ -99,31 +123,58 @@ class TempDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<OnboardingProvider>(context);
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Yaad Rakh — یاد رکھ'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: theme.colorScheme.primaryContainer,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: "Reset Onboarding",
+            onPressed: () async {
+              await provider.resetOnboarding();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Onboarding state reset successfully!")),
+                );
+              }
+            },
+          )
+        ],
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.notifications_active_outlined,
+              Icons.check_circle_outline,
               size: 80,
-              color: Theme.of(context).colorScheme.primary,
+              color: theme.colorScheme.primary,
             ),
             const SizedBox(height: 24),
             Text(
-              'Reminders & Notifications Module Active',
-              style: Theme.of(context).textTheme.titleLarge,
+              'Welcome, ${provider.userName}!',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32),
+            Text(
+              'Onboarding Flow Completed & Reminders Active',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'Run "flutter test" to verify isolated timezone operations, boundary ID safety, and localized triggers.',
+                'Selected Language Profile: ${provider.languageId.toUpperCase()}',
                 textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
               ),
             ),
           ],

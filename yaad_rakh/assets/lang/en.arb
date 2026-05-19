@@ -1,1 +1,16 @@
-{}
+{
+  "appName": "Yaad Rakh",
+  "selectLanguage": "Select your language",
+  "enterName": "Enter your name",
+  "continueBtn": "Continue",
+  "nextBtn": "Next",
+  "previousBtn": "Previous",
+  "getStarted": "Get Started",
+  "signInGoogle": "Sign in with Google",
+  "skipForNow": "Skip for now",
+  "tutorial1Caption": "Create tasks instantly",
+  "tutorial2Caption": "Schedule tasks with a tap",
+  "tutorial3Caption": "Mark tasks done and track progress",
+  "greetingEn": "Hello",
+  "greetingUr": "السلام علیکم"
+}

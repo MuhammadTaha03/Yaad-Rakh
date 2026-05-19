@@ -1,1 +1,16 @@
-{}
+{
+  "appName": "یاد رکھ",
+  "selectLanguage": "اپنی زبان منتخب کریں",
+  "enterName": "اپنا نام درج کریں",
+  "continueBtn": "جاری رکھیں",
+  "nextBtn": "اگلا",
+  "previousBtn": "پچھلا",
+  "getStarted": "شروع کریں",
+  "signInGoogle": "گوگل کے ساتھ لاگ ان کریں",
+  "skipForNow": "ابھی چھوڑیں",
+  "tutorial1Caption": "فوری طور پر کام بنائیں۔",
+  "tutorial2Caption": "صرف ایک تھپتھپانے سے شیڈول کریں۔",
+  "tutorial3Caption": "کاموں کو مکمل کریں اور پیشرفت دیکھیں۔",
+  "greetingEn": "Hello",
+  "greetingUr": "السلام علیکم"
+}

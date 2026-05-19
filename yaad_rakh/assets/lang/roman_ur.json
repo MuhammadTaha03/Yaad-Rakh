@@ -1,1 +1,16 @@
-{}
+{
+  "appName": "Yaad Rakh",
+  "selectLanguage": "Apni zaban chunain",
+  "enterName": "Apna naam likhain",
+  "continueBtn": "Aage Barein",
+  "nextBtn": "Agla",
+  "previousBtn": "Pichla",
+  "getStarted": "Shuru Karein",
+  "signInGoogle": "Google se Login Karein",
+  "skipForNow": "Abhi Chhoren",
+  "tutorial1Caption": "Foran kaam add karein",
+  "tutorial2Caption": "Ek tap mein schedule karein",
+  "tutorial3Caption": "Kaam mukammal karein aur dekhein",
+  "greetingEn": "Hello",
+  "greetingUr": "Salaam"
+}
