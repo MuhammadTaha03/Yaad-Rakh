@@ -189,58 +189,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // A. Premium Glassmorphic Gradient Header Card
-                    Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            theme.colorScheme.primaryContainer,
-                            theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            fullGreeting,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            progressSubtitle,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Simple progress bar
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: LinearProgressIndicator(
-                              value: (completedCount + remainingCount) == 0
-                                  ? 0
-                                  : completedCount / (completedCount + remainingCount),
-                              backgroundColor: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.12),
-                              color: theme.colorScheme.primary,
-                              minHeight: 8,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // A. Premium Glassmorphic Gradient Header Card (Removed for simplicity)
 
                     if (_isOffline)
                       Container(
@@ -459,30 +408,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   ),
           ],
         ),
-        floatingActionButton: Row(
+        floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            FloatingActionButton(
-              heroTag: "voice_input_fab",
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(28),
-                      topRight: Radius.circular(28),
-                    ),
-                  ),
-                  builder: (_) => const VoiceInputSheet(),
-                );
-              },
-              backgroundColor: theme.colorScheme.secondary,
-              foregroundColor: theme.colorScheme.onSecondary,
-              tooltip: "Voice Input",
-              child: const Icon(Icons.mic),
-            ),
-            const SizedBox(width: 16),
             FloatingActionButton.extended(
               heroTag: "primary_add_fab",
               onPressed: () {
@@ -502,6 +431,27 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               icon: const Icon(Icons.add),
+            ),
+            const SizedBox(height: 16),
+            FloatingActionButton(
+              heroTag: "voice_input_fab",
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
+                    ),
+                  ),
+                  builder: (_) => const VoiceInputSheet(),
+                );
+              },
+              backgroundColor: theme.colorScheme.secondary,
+              foregroundColor: theme.colorScheme.onSecondary,
+              tooltip: "Voice Input",
+              child: const Icon(Icons.mic, size: 28),
             ),
           ],
         ),

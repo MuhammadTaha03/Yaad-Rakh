@@ -10,6 +10,7 @@ import '../task_provider.dart';
 import '../models/task.dart';
 import '../services/natural_language_parser.dart';
 import '../../onboarding/onboarding_provider.dart';
+import 'date_time_picker.dart';
 
 class VoiceInputSheet extends StatefulWidget {
   const VoiceInputSheet({super.key});
@@ -428,6 +429,18 @@ class _VoiceInputSheetState extends State<VoiceInputSheet> with SingleTickerProv
                 ),
               ),
             ],
+            
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+            
+            // Scheduling picker so user can verify or add reminder time
+            DateTimePicker(
+              selectedDate: _parsedDate,
+              selectedTime: _parsedTime,
+              onDateSelected: (date) => setState(() => _parsedDate = date),
+              onTimeSelected: (time) => setState(() => _parsedTime = time),
+            ),
             
             const SizedBox(height: 32),
 

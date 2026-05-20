@@ -7,7 +7,6 @@ import 'package:hive/hive.dart';
 import 'package:meta/meta.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 import '../tasks/models/task.dart';
 import 'notification_localization.dart';
 import 'notification_exception.dart';
@@ -24,7 +23,8 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _localPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localPlugin =
+      FlutterLocalNotificationsPlugin();
   late final FirebaseMessaging _fcm;
 
   // Unique channel IDs
@@ -39,11 +39,13 @@ class NotificationService {
     // 1. Initialize timezone databases
     tz.initializeTimeZones();
     try {
-      final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+      final String timeZoneName = DateTime.now().timeZoneName;
       tz.setLocalLocation(tz.getLocation(timeZoneName));
       log("Timezone configured successfully to: $timeZoneName");
     } catch (e) {
-      tz.setLocalLocation(tz.getLocation('Asia/Karachi')); // Safe fallback for Pakistan
+      tz.setLocalLocation(
+        tz.getLocation('Asia/Karachi'),
+      ); // Safe fallback for Pakistan
       log("Timezone set to fallback: Asia/Karachi due to: $e");
     }
 
@@ -51,11 +53,12 @@ class NotificationService {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        );
 
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
@@ -76,7 +79,9 @@ class NotificationService {
     try {
       _fcm = FirebaseMessaging.instance;
       // Configure background messaging
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
 
       // Request permission (iOS specific, safe on Android)
       NotificationSettings fcmSettings = await _fcm.requestPermission(
@@ -84,7 +89,9 @@ class NotificationService {
         badge: true,
         sound: true,
       );
-      log('FCM Permission authorization status: ${fcmSettings.authorizationStatus}');
+      log(
+        'FCM Permission authorization status: ${fcmSettings.authorizationStatus}',
+      );
 
       // Retrieve registration token
       String? token = await _fcm.getToken();
@@ -95,7 +102,9 @@ class NotificationService {
 
       // Configure foreground message listener
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        log("Received foreground cloud message: ${message.notification?.title}");
+        log(
+          "Received foreground cloud message: ${message.notification?.title}",
+        );
         _showForegroundPushNotification(message);
       });
     } catch (e) {
@@ -126,18 +135,22 @@ class NotificationService {
 
   /// Request runtime notification permissions
   Future<bool> requestPermissions() async {
-    final androidImplementation = _localPlugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    
+    final androidImplementation = _localPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+
     bool? androidGranted = false;
     if (androidImplementation != null) {
-      androidGranted = await androidImplementation.requestNotificationsPermission();
-      await androidImplementation.requestExactAlarmsPermission();
+      androidGranted = await androidImplementation
+          .requestNotificationsPermission();
     }
 
-    final iosImplementation = _localPlugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
-    
+    final iosImplementation = _localPlugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+
     bool? iosGranted = false;
     if (iosImplementation != null) {
       iosGranted = await iosImplementation.requestPermissions(
@@ -151,19 +164,23 @@ class NotificationService {
   }
 
   /// Pure decision engine for fallback calculation. Excluded from native context.
-  static DateTime? calculateScheduledTime(DateTime dueDateTime, int offsetMinutes, DateTime now) {
+  static DateTime? calculateScheduledTime(
+    DateTime dueDateTime,
+    int offsetMinutes,
+    DateTime now,
+  ) {
     if (offsetMinutes == -1) return null;
-    
+
     final reminderTime = dueDateTime.subtract(Duration(minutes: offsetMinutes));
-    
+
     if (reminderTime.isAfter(now)) {
       return reminderTime; // Branch 1: Normal offset scheduling in future
     }
-    
+
     if (dueDateTime.isAfter(now)) {
       return dueDateTime; // Branch 2: Fallback to exact "On Time" alarm
     }
-    
+
     return null; // Branch 3: Expired entirely, skip
   }
 
@@ -184,7 +201,9 @@ class NotificationService {
 
   /// Schedule standard task reminder + secondary isolated overdue nudge
   Future<void> scheduleTaskReminder(Task task, String languageId) async {
-    if (task.isCompleted || task.dueDate == null || task.reminderOffsetMinutes == -1) {
+    if (task.isCompleted ||
+        task.dueDate == null ||
+        task.reminderOffsetMinutes == -1) {
       await cancelTaskReminder(task.id);
       return;
     }
@@ -195,13 +214,25 @@ class NotificationService {
       final parts = task.dueTime!.split(':');
       final hour = int.parse(parts[0]);
       final min = int.parse(parts[1]);
-      dueDateTime = DateTime(dueDateTime.year, dueDateTime.month, dueDateTime.day, hour, min);
+      dueDateTime = DateTime(
+        dueDateTime.year,
+        dueDateTime.month,
+        dueDateTime.day,
+        hour,
+        min,
+      );
     }
 
-    final targetTime = calculateScheduledTime(dueDateTime, task.reminderOffsetMinutes, DateTime.now());
-    
+    final targetTime = calculateScheduledTime(
+      dueDateTime,
+      task.reminderOffsetMinutes,
+      DateTime.now(),
+    );
+
     if (targetTime == null) {
-      log("Skipping task reminder for '${task.title}': Target and fallbacks are entirely in the past.");
+      log(
+        "Skipping task reminder for '${task.title}': Target and fallbacks are entirely in the past.",
+      );
       return;
     }
 
@@ -226,13 +257,20 @@ class NotificationService {
         presentSound: true,
       );
 
-      const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
 
       // 3. Register native scheduled alarm
       await _localPlugin.zonedSchedule(
         reminderId,
         NotificationLocalization.getReminderTitle(languageId),
-        NotificationLocalization.getReminderBody(languageId, task.title, task.dueTime),
+        NotificationLocalization.getReminderBody(
+          languageId,
+          task.title,
+          task.dueTime,
+        ),
         scheduledTZ,
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -240,7 +278,9 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
       );
 
-      log("Notification scheduled successfully for task: '${task.title}' at: $scheduledTZ (ID: $reminderId)");
+      log(
+        "Notification scheduled successfully for task: '${task.title}' at: $scheduledTZ (ID: $reminderId)",
+      );
 
       // 4. Schedule standard overdue alert (30 minutes after due time)
       final overdueTime = dueDateTime.add(const Duration(minutes: 30));
@@ -258,7 +298,9 @@ class NotificationService {
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
         );
-        log("Overdue alarm scheduled for task: '${task.title}' at: $overdueTZ (ID: $overdueId)");
+        log(
+          "Overdue alarm scheduled for task: '${task.title}' at: $overdueTZ (ID: $overdueId)",
+        );
       }
     } catch (e, stack) {
       throw NotificationSchedulerException(
@@ -274,8 +316,10 @@ class NotificationService {
       final reminderId = hashTaskId(taskId);
       final overdueId = hashOverdueId(taskId);
       await _localPlugin.cancel(reminderId); // Primary reminder
-      await _localPlugin.cancel(overdueId);  // Overdue alert
-      log("Cancelled all notifications for task: $taskId (IDs: $reminderId, $overdueId)");
+      await _localPlugin.cancel(overdueId); // Overdue alert
+      log(
+        "Cancelled all notifications for task: $taskId (IDs: $reminderId, $overdueId)",
+      );
     } catch (e, stack) {
       throw NotificationSchedulerException(
         "Failed cancelling task alert natively: $e",
@@ -285,7 +329,11 @@ class NotificationService {
   }
 
   /// Pre-schedules morning rolling summaries for the next 7 days
-  Future<void> scheduleMorningSummaries(List<Task> pendingTasks, String languageId, String summaryTime) async {
+  Future<void> scheduleMorningSummaries(
+    List<Task> pendingTasks,
+    String languageId,
+    String summaryTime,
+  ) async {
     final parts = summaryTime.split(':');
     final targetHour = int.parse(parts[0]);
     final targetMin = int.parse(parts[1]);
@@ -300,13 +348,22 @@ class NotificationService {
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
     );
-    const details = NotificationDetails(android: androidDetails, iOS: DarwinNotificationDetails());
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(),
+    );
 
     try {
       // Morning summaries will use reserved static IDs 2000000 to 2000006
       for (int i = 0; i < 7; i++) {
         final targetDay = todayStart.add(Duration(days: i));
-        final notificationTime = DateTime(targetDay.year, targetDay.month, targetDay.day, targetHour, targetMin);
+        final notificationTime = DateTime(
+          targetDay.year,
+          targetDay.month,
+          targetDay.day,
+          targetHour,
+          targetMin,
+        );
         final notificationId = 2000000 + i;
 
         // Skip today's summary if 8:00 AM has already passed
@@ -318,14 +375,18 @@ class NotificationService {
         final dailyCount = pendingTasks.where((t) {
           if (t.dueDate == null) return false;
           final d = t.dueDate!;
-          return d.year == targetDay.year && d.month == targetDay.month && d.day == targetDay.day;
+          return d.year == targetDay.year &&
+              d.month == targetDay.month &&
+              d.day == targetDay.day;
         }).length;
 
         // UX Zero-Task Filter: Skip scheduling summaries for days with no tasks.
         // Explicitly cancel any pre-scheduled alarms for this day slot to prevent stale notifications.
         if (dailyCount == 0) {
           await _localPlugin.cancel(notificationId);
-          log("Skipped morning summary for day offset $i: No tasks due (Alarms cleared).");
+          log(
+            "Skipped morning summary for day offset $i: No tasks due (Alarms cleared).",
+          );
           continue;
         }
 
@@ -334,7 +395,10 @@ class NotificationService {
         await _localPlugin.zonedSchedule(
           notificationId,
           NotificationLocalization.getMorningSummaryTitle(languageId),
-          NotificationLocalization.getMorningSummaryBody(languageId, dailyCount),
+          NotificationLocalization.getMorningSummaryBody(
+            languageId,
+            dailyCount,
+          ),
           summaryTZ,
           details,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -367,6 +431,8 @@ class NotificationService {
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-    log("Notification clicked! ID: ${response.id}, Payload: ${response.payload}");
+    log(
+      "Notification clicked! ID: ${response.id}, Payload: ${response.payload}",
+    );
   }
 }

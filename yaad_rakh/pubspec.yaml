@@ -1,6 +1,6 @@
 name: yaad_rakh
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -32,7 +32,7 @@ dependencies:
 
   # UI & Fonts
   google_fonts: ^6.1.0
-  speech_to_text: ^6.6.2
+  speech_to_text: ^7.4.0
   table_calendar: ^3.1.2
 
   # Network & System
@@ -46,7 +46,6 @@ dependencies:
   # Offline Reminders & Timezones
   flutter_local_notifications: ^17.2.1
   timezone: ^0.9.4
-  flutter_timezone: ^1.0.8
 
 dev_dependencies:
   flutter_test:
@@ -66,4 +65,3 @@ flutter:
     - family: JameelNooriNastaleeq
       fonts:
         - asset: assets/fonts/JameelNooriNastaleeq.ttf
-
